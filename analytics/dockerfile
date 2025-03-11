@@ -7,11 +7,24 @@ WORKDIR /app
 # Copy the requirements file into the container
 COPY requirements.txt .
 
-# Install the required packages
-RUN apt update -y && apt install -y libpq-dev && pip install --no-cache-dir -r requirements.txt
+# Install necessary packages and add missing GPG keys
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends gnupg2 && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 6ED0E7B82643E131 F8D2585B8783D481 54404762BBB6E853 BDE6D2B9216EC7A8 && \
+    apt-get update -y && \
+    apt-get install -y build-essential libpq-dev && \
+    pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code into the container
 COPY . .
+
+# Set environment variables
+ENV DB_USERNAME=myuser
+ENV DB_PASSWORD=mypassword
+ENV DB_HOST=127.0.0.1
+ENV DB_PORT=5433
+ENV DB_NAME=mydatabase
 
 # Expose the port the app runs on
 EXPOSE 5153
